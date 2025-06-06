@@ -1,52 +1,46 @@
 import streamlit as st
-import requests
+import random
 
-st.set_page_config(page_title="Segmind VEO-2 Generator", layout="centered")
+# Sample Pokémon data (you can extend or pull from PokéAPI)
+POKEMON_DATA = {
+    "fire": ["Charmander", "Vulpix", "Growlithe"],
+    "water": ["Squirtle", "Psyduck", "Totodile"],
+    "grass": ["Bulbasaur", "Chikorita", "Oddish"],
+    "electric": ["Pikachu", "Electabuzz", "Mareep"],
+    "psychic": ["Abra", "Espeon", "Ralts"]
+}
 
-st.title("🎥 Segmind VEO-2 Generator")
-st.markdown("Generate videos with AI using Segmind's VEO-2 API")
+# Simulated investment returns
+def simulate_investment(pokemon_name):
+    base_value = random.randint(100, 1000)
+    multiplier = round(random.uniform(1.1, 3.5), 2)
+    return base_value, round(base_value * multiplier, 2)
 
-# Sidebar: API Config
-st.sidebar.header("🔑 API Configuration")
-api_key = st.sidebar.text_input("API Key", type="password", placeholder="Enter your Segmind API key")
-api_url = st.sidebar.text_input("API URL", "https://api.segmind.com/v1/veo-2")
+# Sidebar: user input
+st.sidebar.title("Poke Ventures")
+username = st.sidebar.text_input("Your Name")
+poke_type = st.sidebar.selectbox("Select Pokémon Type", list(POKEMON_DATA.keys()))
 
-# Only proceed if API key is provided
-if api_key:
-    headers = {"x-api-key": api_key}
+# Main section
+st.title("🚀 Welcome to Poke Ventures!")
 
-    # Prompt Form
-    with st.form("generate_form"):
-        prompt = st.text_input("Prompt", "a red panda riding a skateboard")
-        seed = st.number_input("Seed", min_value=0, max_value=9999999, value=965002)
-        duration = st.selectbox("Duration (seconds)", ["3", "5", "10"], index=1)
-        aspect_ratio = st.selectbox("Aspect Ratio", ["16:9", "9:16", "1:1"], index=0)
-        submitted = st.form_submit_button("🎬 Generate")
+if username:
+    st.subheader(f"Hello {username}, let's explore your Pokémon investment journey!")
+    st.write(f"✨ You've selected the **{poke_type.capitalize()}** type Pokémon.")
 
-    if submitted:
-        with st.spinner("Generating video..."):
-            payload = {
-                "prompt": prompt,
-                "seed": int(seed),
-                "duration": duration,
-                "aspect_ratio": aspect_ratio
-            }
+    # Random Pokémon from type
+    chosen_pokemon = random.choice(POKEMON_DATA[poke_type])
+    st.image(f"https://img.pokemondb.net/artwork/large/{chosen_pokemon.lower()}.jpg", width=200)
+    st.success(f"You've discovered: **{chosen_pokemon}**!")
 
-            response = requests.post(api_url, json=payload, headers=headers)
+    # Simulated investment
+    st.markdown("### 💸 Investment Simulator")
+    if st.button("Simulate Investment"):
+        cost, return_val = simulate_investment(chosen_pokemon)
+        st.write(f"Initial Investment in **{chosen_pokemon}**: ${cost}")
+        st.write(f"Your Return: ${return_val}")
+        st.balloons()
 
-            if response.status_code == 200:
-                try:
-                    result = response.json()
-                    video_url = result.get("video_url") or result.get("url")
-                    if video_url:
-                        st.video(video_url)
-                    else:
-                        st.success("API call succeeded, but no video URL found in response.")
-                        st.json(result)
-                except Exception as e:
-                    st.error(f"Response parse error: {e}")
-                    st.text(response.text)
-            else:
-                st.error(f"❌ Error {response.status_code}: {response.text}")
 else:
-    st.warning("Please enter your API key in the sidebar to proceed.")
+    st.info("👈 Please enter your name and choose a Pokémon type to begin.")
+
